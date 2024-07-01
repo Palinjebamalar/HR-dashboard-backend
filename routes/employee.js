@@ -40,6 +40,7 @@ router.post("/employee",authMiddleware,checkrole(["admin"]),upload.array("media"
         ),
         user: req.userId,
       });
+      console.log(newEmployee)
       await newEmployee.save();
       res.json({ message: "Employee details added sucessfully" });
     } catch (error) {
@@ -63,8 +64,8 @@ router.post("/employee",authMiddleware,checkrole(["admin"]),upload.array("media"
   // Get a specific employee by ID
   router.get("/employee/:employeeId",authMiddleware,checkrole(["admin","employee"]), async (req, res) => {
     try {
-      const employeeId =req.params
-      const employee = await Employee.findById(employeeId);
+      
+      const employee = await Employee.findById(req.params.employeeId);
       if (!employee) {
         return res.status(404).json({ message: 'Employee not found' });
       }
@@ -79,8 +80,9 @@ router.post("/employee",authMiddleware,checkrole(["admin"]),upload.array("media"
   router.put("/employee/:employeeId",authMiddleware, checkrole(["admin"]), async (req, res) => {
     try {
         const updates=req.body
-        // const {employeeId}=req.params
-      const employee = await Employee.findByIdAndUpdate(req.params.employeeId, updates);
+        const {employeeId}=req.params
+        console.log(req.params)
+      const employee = await Employee.findByIdAndUpdate(employeeId, updates);
       
       if (!employee) {
         return res.status(404).json({ message: 'Employee not found' });

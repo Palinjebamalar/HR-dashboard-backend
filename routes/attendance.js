@@ -29,15 +29,21 @@ router.get('/attendance', authMiddleware, checkRole(['admin', 'employee']), asyn
   });
 
   // Get attendance records for a specific employee by employeeId
-  router.get('/attendance:employeeId', authMiddleware, checkRole(['admin', 'employee']), async (req, res) => {
+  router.get('/attendance/:attendanceId', authMiddleware, checkRole(['admin', 'employee']), async (req, res) => {
     try {
       // const { employeeId } = req.params;
-      const attendances = await Attendance.find(req.params.attendanceId).populate('employeeId', 'employeename');
+      const attendances = await Attendance.findById(req.params.attendanceId);
+      if (!attendances) {
+        return res.status(404).json({ message:'attendances not found' });
+      }
+      console.log(attendances)
       res.json(attendances);
+      
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
   });
+  
   
 // Update an attendance record by ID
 router.put('/attendance/:attendanceId', authMiddleware, checkRole(['admin']), async (req, res) => {

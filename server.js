@@ -23,12 +23,12 @@ app.use(bodyParser.json())
 app.use("/apiAuth",authRoutes)
 app.use("/apiEmployees",employeeRoutes)
 app.use("/apiAttendance",attendanceRoutes)
-app.use('/apicandidates', candidateRoutes);
-app.use('/apiinterviews', interviewRoutes);
-app.use('/apijobPosting', jobPostingRoutes);
-app.use('/apigoals', goalRoutes);
-app.use('/apileaveRequest', leaveRequestRoutes);
-app.use('/apiperformances', performanceRoutes);
+app.use('/apiCandidates', candidateRoutes);
+app.use('/apiInterviews', interviewRoutes);
+app.use('/apiJobPosting', jobPostingRoutes);
+app.use('/apiGoals', goalRoutes);
+app.use('/apiLeaveRequest', leaveRequestRoutes);
+app.use('/apiPerformances', performanceRoutes);
 
 //mongoose connect
 mongoose.connect(process.env.MONGODB_URI).then(()=>{

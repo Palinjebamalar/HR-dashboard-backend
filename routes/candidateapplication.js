@@ -7,16 +7,42 @@ const multer = require('multer');
 const cloudinary = require('../config/cloudinary');
 const jobPosting=require("../models/JobPosting")
 
-
+// Multer configuration
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 // Create a new candidate application
-  router.post('/apply', authMiddleware, checkRole(['applicant']), async (req, res) => {
-    try {
-      const { name, resume, coverLetter } = req.body;
-      const newApplication = new CandidateApplication({ name, resume, coverLetter });
+  router.post('/apply', authMiddleware, checkRole(['applicant']),upload.array("media"), async (req, res) => {
+    const { name, coverLetter } = req.body;
+    try{
+    // Upload media files to Cloudinary
+    const mediaUrls = await Promise.all(
+      req.files.map(async (file) => {
+        return new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              resource_type: "auto",
+            },
+            (error, result) => {
+              if (error) return reject(error);
+              resolve(result.secure_url);
+            }
+          );
+          uploadStream.end(file.buffer);
+        });
+      })
+    );
+    const newApplication = new CandidateApplication({ name,coverLetter,
+      resume: mediaUrls.filter(
+        (url) => url.endsWith(".jpg") || url.endsWith(".png")
+      ),
+      user: req.userId,
+    });
+    console.log(newApplication)
       await newApplication.save();
-      res.status(201).json(newApplication);
-    } catch (error) {
+      res.status(201).json({message:"Application sent"});
+    } 
+    catch (error) {
       res.status(400).json({ message: error.message });
     }
   });
@@ -36,7 +62,7 @@ const jobPosting=require("../models/JobPosting")
   router.get('/applications/:applicationId', authMiddleware, checkRole(['admin','employee']), async (req, res) => {
     try {
      
-      const applications = await CandidateApplication.find(req.params.jobId)
+      const applications = await CandidateApplication.findById(req.params.applicationId)
       // const applications = await CandidateApplication.find({ appliedJobs: jobId }).populate('appliedJobs');
       res.json(applications);
     } catch (error) {
