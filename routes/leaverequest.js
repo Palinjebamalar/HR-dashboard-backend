@@ -22,7 +22,7 @@ router.post('/leave', authMiddleware, async (req, res) => {
 });
 
 // Get all leave requests
-router.get('/leave', authMiddleware, checkRole(['admin']), async (req, res) => {
+router.get('/leave', authMiddleware, checkRole(['admin','employee']), async (req, res) => {
   try {
     const leaveRequests = await LeaveRequest.find().populate('employeeId');
     res.json(leaveRequests);
@@ -34,7 +34,7 @@ router.get('/leave', authMiddleware, checkRole(['admin']), async (req, res) => {
 // Get a specific leave request by ID
 router.get('/leave/:leaveRequestId', authMiddleware, checkRole(['admin']), async (req, res) => {
   try {
-   
+
     const leaveRequest = await LeaveRequest.findById(req.params.leaveRequestId).populate('employeeId');
     if (!leaveRequest) {
       return res.status(404).json({ message: 'Leave request not found' });
@@ -48,8 +48,8 @@ router.get('/leave/:leaveRequestId', authMiddleware, checkRole(['admin']), async
 // Update a leave request by ID
 router.put('/leave/:leaveRequestId', authMiddleware, checkRole(['admin']), async (req, res) => {
   try {
-    const updates = req.body;
-    const updatedLeaveRequest = await LeaveRequest.findByIdAndUpdate(req.params.leaveRequestId, updates, { new: true });
+    const status = req.body.status;
+    const updatedLeaveRequest = await LeaveRequest.findByIdAndUpdate(req.params.leaveRequestId, { status: status }, { new: true });
     if (!updatedLeaveRequest) {
       return res.status(404).json({ message: 'Leave request not found' });
     }

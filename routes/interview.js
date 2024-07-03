@@ -5,12 +5,11 @@ const authMiddleware = require('../middleware/auth');
 const checkRole = require('../middleware/role');
 
 // Schedule an interview for an applicant
-router.post('/schedule', authMiddleware, checkRole(['admin']), async (req, res) => {
-  const { candidate, jobPosting, interviewDate, interviewer, feedback } = req.body;
+router.post('/schedule', authMiddleware, checkRole(['admin', 'employee']), async (req, res) => {
+  const { candidate, interviewDate, interviewer, feedback } = req.body;
   try {
     const newInterviewSchedule = new InterviewSchedule({
       candidate,
-      jobPosting,
       interviewDate,
       interviewer,
       feedback
@@ -23,9 +22,16 @@ router.post('/schedule', authMiddleware, checkRole(['admin']), async (req, res) 
 });
 
 // Get all interview schedules
-router.get('/schedule', authMiddleware, checkRole(['admin']), async (req, res) => {
+router.get('/schedule', authMiddleware, checkRole(['admin', 'applicant','employee']), async (req, res) => {
   try {
-    const interviewSchedules = await InterviewSchedule.find().populate('candidate', 'jobPosting');
+    const interviewSchedules = await InterviewSchedule.find().populate({
+      path: 'candidate',
+      populate: {
+        path: 'jobPosting',
+        model: 'JobPosting',
+        select: 'title', // Only select the 'title' field if needed
+      },
+    });
     res.json(interviewSchedules);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -35,8 +41,8 @@ router.get('/schedule', authMiddleware, checkRole(['admin']), async (req, res) =
 // Get a specific interview schedule by ID
 router.get('/schedule/:scheduleId', authMiddleware, checkRole(['admin']), async (req, res) => {
   try {
-  
-    const interviewSchedule = await InterviewSchedule.findById(req.params.scheduleId).populate('candidate','jobPosting');
+
+    const interviewSchedule = await InterviewSchedule.findById(req.params.scheduleId).populate('candidate', 'candidate.jobPosting');
     if (!interviewSchedule) {
       return res.status(404).json({ message: 'Interview schedule not found' });
     }
@@ -49,7 +55,7 @@ router.get('/schedule/:scheduleId', authMiddleware, checkRole(['admin']), async 
 // Update an interview schedule by ID
 router.put('/schedule/:scheduleId', authMiddleware, checkRole(['admin']), async (req, res) => {
   try {
- 
+
     const updates = req.body;
     const updatedSchedule = await InterviewSchedule.findByIdAndUpdate(req.params.scheduleId, updates, { new: true });
     if (!updatedSchedule) {
@@ -64,7 +70,7 @@ router.put('/schedule/:scheduleId', authMiddleware, checkRole(['admin']), async 
 // Delete an interview schedule by ID
 router.delete('/schedule/:scheduleId', authMiddleware, checkRole(['admin']), async (req, res) => {
   try {
-    
+
     const deletedSchedule = await InterviewSchedule.findByIdAndDelete(req.params.scheduleId);
     if (!deletedSchedule) {
       return res.status(404).json({ message: 'Interview schedule not found' });

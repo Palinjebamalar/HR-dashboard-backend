@@ -5,7 +5,7 @@ const authMiddleware = require('../middleware/auth');
 const checkRole = require('../middleware/role');
 
 // Create a new performance evaluation
-router.post('/performance', authMiddleware, checkRole(['admin']), async (req, res) => {
+router.post('/  ', authMiddleware, checkRole(['admin']), async (req, res) => {
   const { employeeId, feedback, ratings } = req.body;
   try {
     const newPerformance = new Performance({
